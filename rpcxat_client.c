@@ -5,14 +5,29 @@
  */
 
 #include "rpcxat.h"
+#include <unistd.h>
 
+char * send_msg_1_arg;
 
-void
-rpc_xat_1(char *host)
-{
+void signal_handler(int signum){
+	
+	switch(signum){
+		case SIGINT:
+			free(send_msg_1_arg);
+			break;
+		default:
+			break;
+
+	}
+	
+	//Reasignar el signal simplement per bona praxi, però no cal en aquest cas
+	signal(SIGINT, signal_handler);
+}
+
+void rpc_xat_1(char *host){
 	CLIENT *clnt;
 	void  *result_1;
-	char * send_msg_1_arg;
+
 	char * *result_2;
 	int  get_msg_1_arg;
 
@@ -23,8 +38,20 @@ rpc_xat_1(char *host)
 		exit (1);
 	}
 #endif	/* DEBUG */
+	char missatge[500];
 
-	result_1 = send_msg_1(&send_msg_1_arg, clnt);
+	send_msg_1_arg = (char *)malloc(sizeof(char)*1);
+	while(1){
+
+		//Llegim del terminal
+		int nBytes = read(0, missatge, sizeof(missatge));
+		
+		//Demanem memòria dinàmica per la trama que enviem
+		send_msg_1_arg = (char *)realloc(sizeof(char)*nBytes);
+
+		//Enviar missatge al servidor
+		result_1 = send_msg_1(&send_msg_1_arg, clnt);
+	}
 	if (result_1 == (void *) NULL) {
 		clnt_perror (clnt, "call failed");
 	}
@@ -38,9 +65,7 @@ rpc_xat_1(char *host)
 }
 
 
-int
-main (int argc, char *argv[])
-{
+int main (int argc, char *argv[]){
 	char *host;
 
 	if (argc < 2) {
@@ -48,6 +73,9 @@ main (int argc, char *argv[])
 		exit (1);
 	}
 	host = argv[1];
+
+	signal(SIGINT, signal_handler);
+
 	rpc_xat_1 (host);
-exit (0);
+	exit (0);
 }
