@@ -47,7 +47,7 @@ void rpc_xat_1(char *host){
 		int nBytes = read(0, missatge, sizeof(missatge));
 		
 		//Demanem memòria dinàmica per la trama que enviem
-		send_msg_1_arg = (char *)realloc(sizeof(char)*nBytes);
+		send_msg_1_arg = (char *)realloc(send_msg_1_arg, sizeof(char)*nBytes);
 
 		//Enviar missatge al servidor
 		result_1 = send_msg_1(&send_msg_1_arg, clnt);
