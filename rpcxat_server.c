@@ -5,22 +5,17 @@
  */
 
 #include "rpcxat.h"
+#include <unistd.h>
 
-void *
-send_msg_1_svc(char **argp, struct svc_req *rqstp)
-{
+void * send_msg_1_svc(char **argp, struct svc_req *rqstp){
 	static char * result;
 
-	/*
-	 * insert server code here
-	 */
+	write(1, *argp, strlen(*argp));
 
 	return (void *) &result;
 }
 
-char **
-get_msg_1_svc(int *argp, struct svc_req *rqstp)
-{
+char ** get_msg_1_svc(int *argp, struct svc_req *rqstp){
 	static char * result;
 
 	/*
@@ -29,3 +24,4 @@ get_msg_1_svc(int *argp, struct svc_req *rqstp)
 
 	return &result;
 }
+

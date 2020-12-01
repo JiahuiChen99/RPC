@@ -41,17 +41,22 @@ void rpc_xat_1(char *host){
 	char missatge[500];
 
 	send_msg_1_arg = (char *)malloc(sizeof(char)*1);
+	
 	while(1){
 
+		memset(missatge, '\0', 500);
 		//Llegim del terminal
 		int nBytes = read(0, missatge, sizeof(missatge));
-		
+		missatge[nBytes - 1] = '\0';
+
 		//Demanem memòria dinàmica per la trama que enviem
 		send_msg_1_arg = (char *)realloc(send_msg_1_arg, sizeof(char)*nBytes);
+		strcpy(send_msg_1_arg, missatge);
 
 		//Enviar missatge al servidor
 		result_1 = send_msg_1(&send_msg_1_arg, clnt);
 	}
+
 	if (result_1 == (void *) NULL) {
 		clnt_perror (clnt, "call failed");
 	}
