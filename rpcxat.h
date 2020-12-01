@@ -18,7 +18,7 @@ extern "C" {
 #define NAKO 1
 
 #if defined(__STDC__) || defined(__cplusplus)
-#define send_msg 1
+#define send_msg 0
 extern  void * send_msg_1(char **, CLIENT *);
 extern  void * send_msg_1_svc(char **, struct svc_req *);
 #define get_msg 1
@@ -27,7 +27,7 @@ extern  char ** get_msg_1_svc(int *, struct svc_req *);
 extern int rpc_xat_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
-#define send_msg 1
+#define send_msg 0
 extern  void * send_msg_1();
 extern  void * send_msg_1_svc();
 #define get_msg 1

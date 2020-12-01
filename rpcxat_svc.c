@@ -28,10 +28,6 @@ rpc_xat_1(struct svc_req *rqstp, register SVCXPRT *transp)
 	char *(*local)(char *, struct svc_req *);
 
 	switch (rqstp->rq_proc) {
-	case NULLPROC:
-		(void) svc_sendreply (transp, (xdrproc_t) xdr_void, (char *)NULL);
-		return;
-
 	case send_msg:
 		_xdr_argument = (xdrproc_t) xdr_wrapstring;
 		_xdr_result = (xdrproc_t) xdr_void;
