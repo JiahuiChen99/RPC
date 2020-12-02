@@ -6,6 +6,7 @@
 
 #include "rpcxat.h"
 #include <unistd.h>
+#include <signal.h>
 
 char * send_msg_1_arg;
 
@@ -14,6 +15,7 @@ void signal_handler(int signum){
 	switch(signum){
 		case SIGINT:
 			free(send_msg_1_arg);
+			exit(0);
 			break;
 		default:
 			break;
@@ -30,6 +32,7 @@ void rpc_xat_1(char *host){
 
 	char * *result_2;
 	int  get_msg_1_arg;
+	char missatge[500];
 
 #ifndef	DEBUG
 	clnt = clnt_create (host, RPC_XAT, NAKO, "udp");
@@ -38,7 +41,7 @@ void rpc_xat_1(char *host){
 		exit (1);
 	}
 #endif	/* DEBUG */
-	char missatge[500];
+	signal(SIGINT, signal_handler);
 
 	send_msg_1_arg = (char *)malloc(sizeof(char)*1);
 	
@@ -47,7 +50,7 @@ void rpc_xat_1(char *host){
 		memset(missatge, '\0', 500);
 		//Llegim del terminal
 		int nBytes = read(0, missatge, sizeof(missatge));
-		missatge[nBytes - 1] = '\0';
+		//missatge[nBytes - 1] = '\0';
 
 		//Demanem memòria dinàmica per la trama que enviem
 		send_msg_1_arg = (char *)realloc(send_msg_1_arg, sizeof(char)*nBytes);

@@ -6,11 +6,25 @@
 
 #include "rpcxat.h"
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 void * send_msg_1_svc(char **argp, struct svc_req *rqstp){
 	static char * result;
+	int fitxer;
+
+	//Si no existeix el fitxer el crea, sinó afegim una nova entrada des del final
+	fitxer = open("msgDB.txt", O_WRONLY | O_APPEND | O_CREAT, 0666);
 
 	write(1, *argp, strlen(*argp));
+	write(fitxer, *argp, strlen(*argp));
+	
+	close(fitxer);
+
+	//Augmentar el comptador de linies que conté l'arxiu
+	xatCounter++;
+	printf("- %d", xatCounter);
 
 	return (void *) &result;
 }
