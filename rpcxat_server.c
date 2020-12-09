@@ -10,6 +10,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+long xatCounter = 0;
+
 void * send_msg_1_svc(char **argp, struct svc_req *rqstp){
 	static char * result;
 	int fitxer;
@@ -24,7 +26,7 @@ void * send_msg_1_svc(char **argp, struct svc_req *rqstp){
 
 	//Augmentar el comptador de linies que conté l'arxiu
 	xatCounter++;
-	printf("- %d", xatCounter);
+	printf("-Trames: %ld\n", xatCounter);
 
 	return (void *) &result;
 }
@@ -32,9 +34,12 @@ void * send_msg_1_svc(char **argp, struct svc_req *rqstp){
 char ** get_msg_1_svc(int *argp, struct svc_req *rqstp){
 	static char * result;
 
-	/*
-	 * insert server code here
-	 */
+	result = (char *)malloc(sizeof(char)*5);
+	memset(result, '\0', 5);
+
+	strcpy(result, "hola");
+
+	printf("%s i %d\n", result, *argp);
 
 	return &result;
 }

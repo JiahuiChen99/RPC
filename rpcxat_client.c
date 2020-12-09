@@ -7,6 +7,7 @@
 #include "rpcxat.h"
 #include <unistd.h>
 #include <signal.h>
+#include <pthread.h>
 
 char * send_msg_1_arg;
 
@@ -26,12 +27,38 @@ void signal_handler(int signum){
 	signal(SIGINT, signal_handler);
 }
 
+void * pollingMsg(void *host){
+	char *hostname = (char *) host;
+	CLIENT *clnt;
+	char **result_2;
+	int  get_msg_1_arg;
+
+	clnt = clnt_create (host, RPC_XAT, NAKO, "udp");
+	if (clnt == NULL) {
+		clnt_pcreateerror (host);
+		exit (1);
+	}
+	
+	while(1){
+		get_msg_1_arg = 0;
+		result_2 = get_msg_1(&get_msg_1_arg, clnt);
+		//write(1, result_2, strlen(result_2));
+
+		printf("- %s", result_2);
+	
+		if (result_2 == (char **) NULL) {
+			clnt_perror (clnt, "call failed");
+		}
+
+		sleep(5);
+	}
+	
+	return NULL;
+}
+
 void rpc_xat_1(char *host){
 	CLIENT *clnt;
 	void  *result_1;
-
-	char * *result_2;
-	int  get_msg_1_arg;
 	char missatge[500];
 
 #ifndef	DEBUG
@@ -44,7 +71,7 @@ void rpc_xat_1(char *host){
 	signal(SIGINT, signal_handler);
 
 	send_msg_1_arg = (char *)malloc(sizeof(char)*1);
-	
+
 	while(1){
 
 		memset(missatge, '\0', 500);
@@ -58,15 +85,13 @@ void rpc_xat_1(char *host){
 
 		//Enviar missatge al servidor
 		result_1 = send_msg_1(&send_msg_1_arg, clnt);
+
+		//Control d'error d'enviament
+		if (result_1 == (void *) NULL) {
+			clnt_perror (clnt, "call failed");
+		}
 	}
 
-	if (result_1 == (void *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-	result_2 = get_msg_1(&get_msg_1_arg, clnt);
-	if (result_2 == (char **) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
 #ifndef	DEBUG
 	clnt_destroy (clnt);
 #endif	 /* DEBUG */
@@ -75,6 +100,7 @@ void rpc_xat_1(char *host){
 
 int main (int argc, char *argv[]){
 	char *host;
+	pthread_t idThread;
 
 	if (argc < 2) {
 		printf ("usage: %s server_host\n", argv[0]);
@@ -84,6 +110,8 @@ int main (int argc, char *argv[]){
 
 	signal(SIGINT, signal_handler);
 
+	pthread_create(&idThread, NULL, &pollingMsg, host);
 	rpc_xat_1 (host);
+	pthread_join(idThread, NULL);
 	exit (0);
 }

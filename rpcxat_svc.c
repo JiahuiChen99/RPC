@@ -16,9 +16,7 @@
 #define SIG_PF void(*)(int)
 #endif
 
-static void
-rpc_xat_1(struct svc_req *rqstp, register SVCXPRT *transp)
-{
+static void rpc_xat_1(struct svc_req *rqstp, register SVCXPRT *transp){
 	union {
 		char *send_msg_1_arg;
 		int get_msg_1_arg;
@@ -60,9 +58,7 @@ rpc_xat_1(struct svc_req *rqstp, register SVCXPRT *transp)
 	return;
 }
 
-int
-main (int argc, char **argv)
-{
+int main (int argc, char **argv){
 	register SVCXPRT *transp;
 
 	pmap_unset (RPC_XAT, NAKO);
