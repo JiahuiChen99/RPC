@@ -34,12 +34,15 @@ void * send_msg_1_svc(char **argp, struct svc_req *rqstp){
 char ** get_msg_1_svc(int *argp, struct svc_req *rqstp){
 	static char * result;
 
+	//xdr_free((xdrproc_t)xdr_string, (char *)&result);
+
 	result = (char *)malloc(sizeof(char)*5);
 	memset(result, '\0', 5);
 
 	strcpy(result, "hola");
 
 	printf("%s i %d\n", result, *argp);
+
 
 	return &result;
 }

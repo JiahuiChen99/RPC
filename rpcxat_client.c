@@ -42,9 +42,10 @@ void * pollingMsg(void *host){
 	while(1){
 		get_msg_1_arg = 0;
 		result_2 = get_msg_1(&get_msg_1_arg, clnt);
-		//write(1, result_2, strlen(result_2));
+		write(1, *result_2, strlen(*result_2));
+		write(1, "\n", 1);
 
-		printf("- %s", result_2);
+		//printf("- %s", *result_2);
 	
 		if (result_2 == (char **) NULL) {
 			clnt_perror (clnt, "call failed");
