@@ -16,6 +16,8 @@ void * send_msg_1_svc(char **argp, struct svc_req *rqstp){
 	static char * result;
 	int fitxer;
 
+	xdr_free((xdrproc_t)xdr_string, (char *)&result);
+
 	//Si no existeix el fitxer el crea, sinó afegim una nova entrada des del final
 	fitxer = open("msgDB.txt", O_WRONLY | O_APPEND | O_CREAT, 0666);
 
@@ -33,15 +35,17 @@ void * send_msg_1_svc(char **argp, struct svc_req *rqstp){
 
 char ** get_msg_1_svc(int *argp, struct svc_req *rqstp){
 	static char * result;
+	
+	xatCounter++;
 
-	//xdr_free((xdrproc_t)xdr_string, (char *)&result);
+	xdr_free((xdrproc_t)xdr_string, (char *)&result);
 
 	result = (char *)malloc(sizeof(char)*5);
 	memset(result, '\0', 5);
 
 	strcpy(result, "hola");
 
-	printf("%s i %d\n", result, *argp);
+	//printf("%s i %d\n", result, *argp);
 
 
 	return &result;

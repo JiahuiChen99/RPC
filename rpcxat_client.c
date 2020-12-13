@@ -9,13 +9,18 @@
 #include <signal.h>
 #include <pthread.h>
 
-char * send_msg_1_arg;
+#define MAX_BUFFER 500
+
+char * send_msg_1_arg = NULL;
+pthread_t idThread;
 
 void signal_handler(int signum){
 	
 	switch(signum){
 		case SIGINT:
-			free(send_msg_1_arg);
+			//free(send_msg_1_arg);
+
+			pthread_join(idThread, NULL);
 			exit(0);
 			break;
 		default:
@@ -39,8 +44,11 @@ void * pollingMsg(void *host){
 		exit (1);
 	}
 	
+	get_msg_1_arg = 0;
+	
 	while(1){
-		get_msg_1_arg = 0;
+		get_msg_1_arg++;
+		printf("- %d\n", get_msg_1_arg);
 		result_2 = get_msg_1(&get_msg_1_arg, clnt);
 		write(1, *result_2, strlen(*result_2));
 		write(1, "\n", 1);
@@ -60,7 +68,7 @@ void * pollingMsg(void *host){
 void rpc_xat_1(char *host){
 	CLIENT *clnt;
 	void  *result_1;
-	char missatge[500];
+	char missatge[MAX_BUFFER];
 
 #ifndef	DEBUG
 	clnt = clnt_create (host, RPC_XAT, NAKO, "udp");
@@ -75,13 +83,15 @@ void rpc_xat_1(char *host){
 
 	while(1){
 
-		memset(missatge, '\0', 500);
+		memset(missatge, '\0', MAX_BUFFER);
+		
 		//Llegim del terminal
-		int nBytes = read(0, missatge, sizeof(missatge));
-		//missatge[nBytes - 1] = '\0';
+		int nBytes = read(0, missatge, MAX_BUFFER);
 
 		//Demanem memòria dinàmica per la trama que enviem
-		send_msg_1_arg = (char *)realloc(send_msg_1_arg, sizeof(char)*nBytes);
+		send_msg_1_arg = (char *)realloc(send_msg_1_arg, sizeof(char)*(nBytes + 1));
+
+		memset(send_msg_1_arg, '\0', (nBytes + 1));
 		strcpy(send_msg_1_arg, missatge);
 
 		//Enviar missatge al servidor
@@ -101,7 +111,6 @@ void rpc_xat_1(char *host){
 
 int main (int argc, char *argv[]){
 	char *host;
-	pthread_t idThread;
 
 	if (argc < 2) {
 		printf ("usage: %s server_host\n", argv[0]);
