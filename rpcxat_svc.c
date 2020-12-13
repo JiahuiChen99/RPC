@@ -11,6 +11,7 @@
 #include <memory.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <fcntl.h>
 
 #ifndef SIG_PF
 #define SIG_PF void(*)(int)
@@ -82,6 +83,9 @@ int main (int argc, char **argv){
 		fprintf (stderr, "%s", "unable to register (RPC_XAT, NAKO, tcp).");
 		exit(1);
 	}
+
+	//Si no existeix el fitxer el crea
+	int fitxer = open("msgDB.txt", O_WRONLY | O_CREAT, 0666);
 
 	svc_run ();
 	fprintf (stderr, "%s", "svc_run returned");

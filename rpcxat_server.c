@@ -13,31 +13,24 @@
 
 #define MAX_BUFFER 500
 
-long xatCounter = 0;
-
 void * send_msg_1_svc(char **argp, struct svc_req *rqstp){
 	static char * result;
 	int fitxer;
 
 	xdr_free((xdrproc_t)xdr_string, (char *)&result);
 
-	//Si no existeix el fitxer el crea, sinó afegim una nova entrada des del final
 	fitxer = open("msgDB.txt", O_WRONLY | O_APPEND | O_CREAT, 0666);
 
-	write(1, *argp, strlen(*argp));
+	//write(1, *argp, strlen(*argp));
 	write(fitxer, *argp, strlen(*argp));
 	
 	close(fitxer);
-
-	//Augmentar el comptador de linies que conté l'arxiu
-	xatCounter++;
-	printf("-Trames: %ld\n", xatCounter);
 
 	return (void *) &result;
 }
 
 char ** get_msg_1_svc(int *argp, struct svc_req *rqstp){
-	static char * result;
+	static char * result = NULL;
 	FILE *fp;
 	char buff[MAX_BUFFER];
 	
@@ -53,36 +46,31 @@ char ** get_msg_1_svc(int *argp, struct svc_req *rqstp){
     }
 
 	fgets(buff, MAX_BUFFER, fp);
-	//printf("OUTPUT: %s", buff);
 	
 	pclose(fp);
 
-	//Demanem el rang de missatges
-	//Amb tail -n +x file em mostra des de la linia x fins final de fitxer, però
-	//com que prèviament havia obtingut la quantitat de linies en el fitxer ho faré en rang
-	int x1 = *argp;
-	//int x2 = atoi(buff);
-	int x2 = 1;
-	sprintf(buff, "tail -n +%d msgDB.txt | head -n %d", x1, x2);
-	if ((fp = popen(buff, "r")) == NULL) {
-        printf("Error opening pipe!\n");
-		exit(-1);
-    }
+	if(*argp <= atoi(buff)){
+		//Demanem 1 missatge
+		//Amb tail -n +x file em mostra des de la linia x fins final de fitxer, però
+		//afegim head per acotar-ho a un missagte
+		int x1 = *argp;
+		int x2 = 1;
+		sprintf(buff, "tail -n +%d msgDB.txt | head -n %d", x1, x2);
+		if ((fp = popen(buff, "r")) == NULL) {
+			printf("Error opening pipe!\n");
+			exit(-1);
+		}
 
-	while(fgets(buff, MAX_BUFFER, fp) != NULL){
-		printf("OUTPUT: %s\n", buff);
+		memset(buff, '\0', MAX_BUFFER);
+
+		fgets(buff, MAX_BUFFER, fp);
+		pclose(fp);
+
+		result = (char *)malloc(sizeof(char)*(strlen(buff) + 1));
+		memset(result, '\0', strlen(buff) + 1);
+
+		strcpy(result, buff);
 	}
-	
-	pclose(fp);
-
-
-	result = (char *)malloc(sizeof(char)*5);
-	memset(result, '\0', 5);
-
-	strcpy(result, "hola");
-
-	//printf("%s i %d\n", result, *argp);
-
 
 	return &result;
 }

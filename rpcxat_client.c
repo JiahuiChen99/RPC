@@ -13,14 +13,18 @@
 
 char * send_msg_1_arg = NULL;
 pthread_t idThread;
+pthread_mutex_t lock;
+int  get_msg_1_arg;
 
 void signal_handler(int signum){
 	
 	switch(signum){
 		case SIGINT:
-			//free(send_msg_1_arg);
+			free(send_msg_1_arg);
 
 			pthread_join(idThread, NULL);
+			pthread_mutex_destroy(&lock);
+
 			exit(0);
 			break;
 		default:
@@ -36,30 +40,23 @@ void * pollingMsg(void *host){
 	char *hostname = (char *) host;
 	CLIENT *clnt;
 	char **result_2;
-	int  get_msg_1_arg;
-
+	
 	clnt = clnt_create (host, RPC_XAT, NAKO, "udp");
 	if (clnt == NULL) {
 		clnt_pcreateerror (host);
 		exit (1);
 	}
 	
-	get_msg_1_arg = 0;
+	get_msg_1_arg = 1;
 	
 	while(1){
-		get_msg_1_arg++;
-		printf("- %d\n", get_msg_1_arg);
 		result_2 = get_msg_1(&get_msg_1_arg, clnt);
-		write(1, *result_2, strlen(*result_2));
-		write(1, "\n", 1);
-
-		//printf("- %s", *result_2);
-	
-		if (result_2 == (char **) NULL) {
-			clnt_perror (clnt, "call failed");
+		if(result_2 != NULL){
+			write(1, *result_2, strlen(*result_2));
+			pthread_mutex_lock(&lock);
+			get_msg_1_arg++;
+			pthread_mutex_unlock(&lock);
 		}
-
-		//sleep(5);
 	}
 	
 	return NULL;
@@ -87,6 +84,10 @@ void rpc_xat_1(char *host){
 		
 		//Llegim del terminal
 		int nBytes = read(0, missatge, MAX_BUFFER);
+
+		pthread_mutex_lock(&lock);
+		get_msg_1_arg++;
+		pthread_mutex_unlock(&lock);
 
 		//Demanem memòria dinàmica per la trama que enviem
 		send_msg_1_arg = (char *)realloc(send_msg_1_arg, sizeof(char)*(nBytes + 1));
@@ -119,6 +120,8 @@ int main (int argc, char *argv[]){
 	host = argv[1];
 
 	signal(SIGINT, signal_handler);
+
+	pthread_mutex_init(&lock, NULL);
 
 	pthread_create(&idThread, NULL, &pollingMsg, host);
 	rpc_xat_1 (host);
