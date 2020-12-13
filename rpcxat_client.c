@@ -59,7 +59,7 @@ void * pollingMsg(void *host){
 			clnt_perror (clnt, "call failed");
 		}
 
-		sleep(5);
+		//sleep(5);
 	}
 	
 	return NULL;

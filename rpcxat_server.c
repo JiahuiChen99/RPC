@@ -9,6 +9,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <stdio.h>
+
+#define MAX_BUFFER 500
 
 long xatCounter = 0;
 
@@ -35,10 +38,43 @@ void * send_msg_1_svc(char **argp, struct svc_req *rqstp){
 
 char ** get_msg_1_svc(int *argp, struct svc_req *rqstp){
 	static char * result;
+	FILE *fp;
+	char buff[MAX_BUFFER];
 	
-	xatCounter++;
-
 	xdr_free((xdrproc_t)xdr_string, (char *)&result);
+
+	/*
+	* Popen internament fa un fork, obre una pipe i execl de la comanda que li passem
+	* Compta la quantitat de linies que conté el fitxer
+	*/
+	if ((fp = popen("wc -l msgDB.txt | awk '{print $1}'", "r")) == NULL) {
+        printf("Error opening pipe!\n");
+		exit(-1);
+    }
+
+	fgets(buff, MAX_BUFFER, fp);
+	//printf("OUTPUT: %s", buff);
+	
+	pclose(fp);
+
+	//Demanem el rang de missatges
+	//Amb tail -n +x file em mostra des de la linia x fins final de fitxer, però
+	//com que prèviament havia obtingut la quantitat de linies en el fitxer ho faré en rang
+	int x1 = *argp;
+	//int x2 = atoi(buff);
+	int x2 = 1;
+	sprintf(buff, "tail -n +%d msgDB.txt | head -n %d", x1, x2);
+	if ((fp = popen(buff, "r")) == NULL) {
+        printf("Error opening pipe!\n");
+		exit(-1);
+    }
+
+	while(fgets(buff, MAX_BUFFER, fp) != NULL){
+		printf("OUTPUT: %s\n", buff);
+	}
+	
+	pclose(fp);
+
 
 	result = (char *)malloc(sizeof(char)*5);
 	memset(result, '\0', 5);
