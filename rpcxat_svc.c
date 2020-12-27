@@ -12,10 +12,31 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <fcntl.h>
+#include <signal.h>
+#include <unistd.h>
 
 #ifndef SIG_PF
 #define SIG_PF void(*)(int)
 #endif
+
+int fitxer = 0;
+
+void signal_handler(int signum){
+	
+	switch(signum){
+		case SIGINT:
+			close(fitxer);
+
+			exit(0);
+			break;
+		default:
+			break;
+
+	}
+	
+	//Reasignar el signal simplement per bona praxi, però no cal en aquest cas
+	signal(SIGINT, signal_handler);
+}
 
 static void rpc_xat_1(struct svc_req *rqstp, register SVCXPRT *transp){
 	union {
@@ -84,8 +105,10 @@ int main (int argc, char **argv){
 		exit(1);
 	}
 
+	signal(SIGINT, signal_handler);
+
 	//Si no existeix el fitxer el crea
-	int fitxer = open("msgDB.txt", O_WRONLY | O_CREAT, 0666);
+	 fitxer = open("msgDB.txt", O_WRONLY | O_CREAT, 0666);
 
 	svc_run ();
 	fprintf (stderr, "%s", "svc_run returned");

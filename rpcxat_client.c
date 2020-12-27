@@ -11,7 +11,6 @@
 
 #define MAX_BUFFER 500
 
-char * send_msg_1_arg = NULL;
 pthread_t idThread;
 pthread_mutex_t lock;
 int  get_msg_1_arg;
@@ -20,8 +19,6 @@ void signal_handler(int signum){
 	
 	switch(signum){
 		case SIGINT:
-			free(send_msg_1_arg);
-
 			pthread_join(idThread, NULL);
 			pthread_mutex_destroy(&lock);
 
@@ -57,6 +54,7 @@ void * pollingMsg(void *host){
 			get_msg_1_arg++;
 			pthread_mutex_unlock(&lock);
 		}
+		//sleep(1);
 	}
 	
 	return NULL;
@@ -66,6 +64,8 @@ void rpc_xat_1(char *host){
 	CLIENT *clnt;
 	void  *result_1;
 	char missatge[MAX_BUFFER];
+	char *msgSend = missatge;
+	//char *msgSend = "HELLO\n";
 
 #ifndef	DEBUG
 	clnt = clnt_create (host, RPC_XAT, NAKO, "udp");
@@ -76,10 +76,8 @@ void rpc_xat_1(char *host){
 #endif	/* DEBUG */
 	signal(SIGINT, signal_handler);
 
-	send_msg_1_arg = (char *)malloc(sizeof(char)*1);
-
 	while(1){
-
+		//https://docs.freebsd.org/44doc/psd/22.rpcgen/paper.pdf
 		memset(missatge, '\0', MAX_BUFFER);
 		
 		//Llegim del terminal
@@ -89,14 +87,8 @@ void rpc_xat_1(char *host){
 		get_msg_1_arg++;
 		pthread_mutex_unlock(&lock);
 
-		//Demanem memòria dinàmica per la trama que enviem
-		send_msg_1_arg = (char *)realloc(send_msg_1_arg, sizeof(char)*(nBytes + 1));
-
-		memset(send_msg_1_arg, '\0', (nBytes + 1));
-		strcpy(send_msg_1_arg, missatge);
-
 		//Enviar missatge al servidor
-		result_1 = send_msg_1(&send_msg_1_arg, clnt);
+		result_1 = send_msg_1(&msgSend, clnt);
 
 		//Control d'error d'enviament
 		if (result_1 == (void *) NULL) {

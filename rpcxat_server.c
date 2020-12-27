@@ -17,8 +17,6 @@ void * send_msg_1_svc(char **argp, struct svc_req *rqstp){
 	static char * result;
 	int fitxer;
 
-	xdr_free((xdrproc_t)xdr_string, (char *)&result);
-
 	fitxer = open("msgDB.txt", O_WRONLY | O_APPEND | O_CREAT, 0666);
 
 	//write(1, *argp, strlen(*argp));
@@ -26,15 +24,17 @@ void * send_msg_1_svc(char **argp, struct svc_req *rqstp){
 	
 	close(fitxer);
 
+	printf("%s\n", *argp);
+
 	return (void *) &result;
 }
 
 char ** get_msg_1_svc(int *argp, struct svc_req *rqstp){
-	static char * result = NULL;
 	FILE *fp;
 	char buff[MAX_BUFFER];
-	
-	xdr_free((xdrproc_t)xdr_string, (char *)&result);
+	static char * result = NULL;
+
+	memset(buff, '\0', MAX_BUFFER);
 
 	/*
 	* Popen internament fa un fork, obre una pipe i execl de la comanda que li passem
@@ -48,7 +48,7 @@ char ** get_msg_1_svc(int *argp, struct svc_req *rqstp){
 	fgets(buff, MAX_BUFFER, fp);
 	
 	pclose(fp);
-
+	//printf("Client te %d i server te %d", *argp, atoi(buff));
 	if(*argp <= atoi(buff)){
 		//Demanem 1 missatge
 		//Amb tail -n +x file em mostra des de la linia x fins final de fitxer, però
@@ -66,10 +66,13 @@ char ** get_msg_1_svc(int *argp, struct svc_req *rqstp){
 		fgets(buff, MAX_BUFFER, fp);
 		pclose(fp);
 
-		result = (char *)malloc(sizeof(char)*(strlen(buff) + 1));
-		memset(result, '\0', strlen(buff) + 1);
+		//printf("-- %s", result);
+		//memset(result, '\0', strlen(buff) + 1);
 
-		strcpy(result, buff);
+		//strcpy(result, buff);
+		result = buff;
+	}else{
+		result = NULL;
 	}
 
 	return &result;
