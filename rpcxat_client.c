@@ -60,12 +60,12 @@ void * pollingMsg(void *host){
 	return NULL;
 }
 
-void rpc_xat_1(char *host){
+void rpc_xat_1(char *host, char *clientName){
 	CLIENT *clnt;
 	void  *result_1;
 	char missatge[MAX_BUFFER];
-	char *msgSend = missatge;
-	//char *msgSend = "HELLO\n";
+	char buff[MAX_BUFFER];
+	char *msgSend = buff;
 
 #ifndef	DEBUG
 	clnt = clnt_create (host, RPC_XAT, NAKO, "udp");
@@ -79,9 +79,15 @@ void rpc_xat_1(char *host){
 	while(1){
 		//https://docs.freebsd.org/44doc/psd/22.rpcgen/paper.pdf
 		memset(missatge, '\0', MAX_BUFFER);
+		memset(buff, '\0', MAX_BUFFER);
 		
 		//Llegim del terminal
+
+		/*write(1, clientName, strlen(clientName));
+		write(1, ": ", 2);*/
 		int nBytes = read(0, missatge, MAX_BUFFER);
+
+		sprintf(buff, "%s: %s", clientName, missatge);
 
 		pthread_mutex_lock(&lock);
 		get_msg_1_arg++;
@@ -116,7 +122,7 @@ int main (int argc, char *argv[]){
 	pthread_mutex_init(&lock, NULL);
 
 	pthread_create(&idThread, NULL, &pollingMsg, host);
-	rpc_xat_1 (host);
+	rpc_xat_1 (host, argv[2]);
 	pthread_join(idThread, NULL);
 	exit (0);
 }
